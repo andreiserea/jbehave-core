@@ -1,5 +1,7 @@
 package org.jbehave.core.steps;
 
+import java.lang.reflect.Method;
+
 import org.jbehave.core.failures.UUIDExceptionWrapper;
 
 /**
@@ -7,8 +9,12 @@ import org.jbehave.core.failures.UUIDExceptionWrapper;
  */
 public interface Step {
 
-    StepResult perform(UUIDExceptionWrapper storyFailureIfItHappened);
+    Method method();
+	
+	StepResult perform(UUIDExceptionWrapper storyFailureIfItHappened);
 
     StepResult doNotPerform(UUIDExceptionWrapper storyFailureIfItHappened);
-
+    
+    String stepAsString();
+    
 }

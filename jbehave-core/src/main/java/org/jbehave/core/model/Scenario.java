@@ -16,8 +16,9 @@ public class Scenario {
     private final GivenStories givenStories;
     private final ExamplesTable examplesTable;
     private final List<String> steps;
+    private Story story;
 
-    public Scenario() {
+	public Scenario() {
         this(Arrays.<String>asList());
     }
 
@@ -69,6 +70,14 @@ public class Scenario {
         return unmodifiableList(steps);
     }
 
+    public void setStory(Story story) {
+    	this.story = story;
+    }
+    
+    public Story getStory() {
+		return story;
+	}
+    
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

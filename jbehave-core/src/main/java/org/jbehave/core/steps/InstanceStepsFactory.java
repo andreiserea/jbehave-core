@@ -28,7 +28,7 @@ public class InstanceStepsFactory extends AbstractStepsFactory {
     }
 
     @Override
-    protected List<Class<?>> stepsTypes() {
+    public List<Class<?>> stepsTypes() {
         return new ArrayList<Class<?>>(stepsInstances.keySet());
     }
 

@@ -32,9 +32,14 @@ import org.jbehave.core.steps.ParameterControls;
 import org.jbehave.core.steps.ParameterConverters;
 import org.jbehave.core.steps.PrintStreamStepMonitor;
 import org.jbehave.core.steps.SilentStepMonitor;
+import org.jbehave.core.steps.SimpleStepExecutor;
+import org.jbehave.core.steps.SimpleStepLifecycleObserver;
 import org.jbehave.core.steps.StepCollector;
+import org.jbehave.core.steps.StepExecutor;
 import org.jbehave.core.steps.StepFinder;
+import org.jbehave.core.steps.StepLifecycleObserver;
 import org.jbehave.core.steps.StepMonitor;
+import org.jbehave.core.steps.StoryLifecycleObserver;
 
 import com.thoughtworks.paranamer.NullParanamer;
 import com.thoughtworks.paranamer.Paranamer;
@@ -163,6 +168,16 @@ public abstract class Configuration {
      * Use an absolute path calculator
      */
     private PathCalculator pathCalculator = new AbsolutePathCalculator();
+    
+    /**
+     * The default step lifecycle observer does nothing.
+     */
+    private StepLifecycleObserver stepLifecycleObserver = new SimpleStepLifecycleObserver();
+
+    /**
+     * The default step executor invokes the StoryRunner.State.run method.
+     */
+    private StepExecutor stepExecutor = new SimpleStepExecutor();
 
 
     public Keywords keywords() {
@@ -250,6 +265,14 @@ public abstract class Configuration {
 
     public PathCalculator pathCalculator() {
         return pathCalculator;
+    }
+    
+    public StepLifecycleObserver stepLifecycleObserver() {
+    	return stepLifecycleObserver;
+    }
+    
+    public StepExecutor stepExecutor() {
+    	return stepExecutor;
     }
 
     public Configuration useKeywords(Keywords keywords) {
@@ -350,6 +373,16 @@ public abstract class Configuration {
     public Configuration usePathCalculator(PathCalculator pathCalculator) {
         this.pathCalculator = pathCalculator;
         return this;
+    }
+    
+    public Configuration useStepLifecycleObserver(StepLifecycleObserver stepLifecycleObserver) {
+    	this.stepLifecycleObserver = stepLifecycleObserver;
+    	return this;
+    }
+    
+    public Configuration useStepExecutor(StepExecutor stepExecutor) {
+    	this.stepExecutor = stepExecutor;
+    	return this;
     }
 
 }

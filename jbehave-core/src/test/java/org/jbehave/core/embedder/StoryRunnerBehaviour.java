@@ -1,5 +1,6 @@
 package org.jbehave.core.embedder;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -285,6 +286,10 @@ public class StoryRunnerBehaviour {
             public String toString() {
                 return "<fooStep>";
             }
+
+			public Method method() {
+				return null;
+			}
         };
         Step lastStepNormal = mockSuccessfulStep("Then I succeeded");
 

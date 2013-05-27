@@ -106,7 +106,7 @@ public class MarkUnmatchedStepsAsPending implements StepCollector {
         String previousNonAndStep = null;
         for (String stepAsString : scenario.getSteps()) {
             // pending is default step, overridden below
-            Step step = StepCreator.createPendingStep(stepAsString, previousNonAndStep);
+            Step step = StepCreator.createPendingStep(stepAsString, previousNonAndStep, scenario);
             List<Step> composedSteps = new ArrayList<Step>();
             List<StepCandidate> prioritisedCandidates = stepFinder.prioritise(stepAsString, allCandidates);
             for (StepCandidate candidate : prioritisedCandidates) {
@@ -121,9 +121,9 @@ public class MarkUnmatchedStepsAsPending implements StepCollector {
                     if (candidate.isPending()) {
                         ((PendingStep) step).annotatedOn(candidate.getMethod());
                     } else {
-                        step = candidate.createMatchedStep(stepAsString, namedParameters);
+                        step = candidate.createMatchedStep(stepAsString, namedParameters, scenario);
                         if ( candidate.isComposite() ){
-                            candidate.addComposedSteps(composedSteps, stepAsString, namedParameters, allCandidates);
+                            candidate.addComposedSteps(composedSteps, stepAsString, namedParameters, allCandidates, scenario);
                         }
                     }
                     if (!(candidate.isAndStep(stepAsString) || candidate.isIgnorableStep(stepAsString))) {

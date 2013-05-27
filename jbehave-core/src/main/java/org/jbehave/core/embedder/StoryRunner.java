@@ -29,10 +29,13 @@ import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.PendingStepMethodGenerator;
 import org.jbehave.core.steps.ProvidedStepsFactory;
 import org.jbehave.core.steps.Step;
+import org.jbehave.core.steps.StepExecutor;
+import org.jbehave.core.steps.StepLifecycleObserver;
 import org.jbehave.core.steps.StepCollector.Stage;
 import org.jbehave.core.steps.StepCreator.ParameterisedStep;
 import org.jbehave.core.steps.StepCreator.PendingStep;
 import org.jbehave.core.steps.StepResult;
+import org.jbehave.core.steps.StoryLifecycleObserver;
 
 /**
  * Runs a {@link Story}, given a {@link Configuration} and a list of
@@ -473,10 +476,14 @@ public class StoryRunner {
             return;
         }
         State state = context.state();
+        StepLifecycleObserver stepLifecycleObserver = context.configuration().stepLifecycleObserver();
+        StepExecutor stepExecutor = context.configuration().stepExecutor();
         for (Step step : steps) {
             try {
                 context.interruptIfCancelled();
-                state = state.run(step);
+                stepLifecycleObserver.beforeStepExecution(step);
+                state = stepExecutor.invoke(state, step);
+                stepLifecycleObserver.afterStepExecution(step);
             } catch (RestartingScenarioFailure e) {
                 reporter.get().restarted(step.toString(), e);
                 throw e;
@@ -487,9 +494,10 @@ public class StoryRunner {
 
     public interface State {
         State run(Step step);
+        StoryRunner storyRunner();
     }
 
-    private final class FineSoFar implements State {
+    public final class FineSoFar implements State {
 
         public State run(Step step) {
             if ( step instanceof ParameterisedStep ){
@@ -521,9 +529,13 @@ public class StoryRunner {
                 return failureStrategy.get();
             }
         }
+
+		public StoryRunner storyRunner() {
+			return StoryRunner.this;
+		}
     }
 
-    private final class SomethingHappened implements State {
+    public final class SomethingHappened implements State {
         UUIDExceptionWrapper scenarioFailure;
 
         public SomethingHappened(UUIDExceptionWrapper scenarioFailure) {
@@ -535,6 +547,14 @@ public class StoryRunner {
             result.describeTo(reporter.get());
             return this;
         }
+
+		public StoryRunner storyRunner() {
+			return StoryRunner.this;
+		}
+		
+		public UUIDExceptionWrapper scenarioFailure() {
+			return scenarioFailure;
+		}
     }
 
     @Override
@@ -545,7 +565,7 @@ public class StoryRunner {
     /**
      * The context for running a story.
      */
-    private class RunContext {
+    public class RunContext {
         private final Configuration configuration;
         private final List<CandidateSteps> candidateSteps;
         private final String path;
@@ -659,5 +679,9 @@ public class StoryRunner {
             return ((SomethingHappened) state).scenarioFailure.getCause();
         }
         return null;
+    }
+    
+    public StoryReporter storyReporter() {
+    	return this.reporter.get();
     }
 }
