@@ -1,11 +1,23 @@
 package org.jbehave.core.steps;
 
+import static java.util.Arrays.asList;
+import static org.jbehave.core.steps.AbstractStepResult.failed;
+import static org.jbehave.core.steps.AbstractStepResult.ignorable;
+import static org.jbehave.core.steps.AbstractStepResult.notPerformed;
+import static org.jbehave.core.steps.AbstractStepResult.pending;
+import static org.jbehave.core.steps.AbstractStepResult.skipped;
+import static org.jbehave.core.steps.AbstractStepResult.successful;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,19 +30,12 @@ import org.jbehave.core.failures.RestartingScenarioFailure;
 import org.jbehave.core.failures.UUIDExceptionWrapper;
 import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.Meta;
+import org.jbehave.core.model.Scenario;
 import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.reporters.StoryReporter;
 
 import com.thoughtworks.paranamer.NullParanamer;
 import com.thoughtworks.paranamer.Paranamer;
-
-import static java.util.Arrays.asList;
-import static org.jbehave.core.steps.AbstractStepResult.failed;
-import static org.jbehave.core.steps.AbstractStepResult.ignorable;
-import static org.jbehave.core.steps.AbstractStepResult.notPerformed;
-import static org.jbehave.core.steps.AbstractStepResult.pending;
-import static org.jbehave.core.steps.AbstractStepResult.skipped;
-import static org.jbehave.core.steps.AbstractStepResult.successful;
 
 public class StepCreator {
 
@@ -197,8 +202,8 @@ public class StepCreator {
     }
 
     public Step createParametrisedStep(final Method method, final String stepAsString,
-            final String stepWithoutStartingWord, final Map<String, String> namedParameters) {
-        return new ParameterisedStep(stepAsString, method, stepWithoutStartingWord, namedParameters);
+            final String stepWithoutStartingWord, final Map<String, String> namedParameters, Scenario scenario) {
+        return new ParameterisedStep(stepAsString, method, stepWithoutStartingWord, namedParameters, scenario);
     }
 
     private String parametrisedStep(String stepAsString, Map<String, String> namedParameters, Type[] types,
@@ -399,8 +404,8 @@ public class StepCreator {
         return namedParameter(namedParameters, name) != null;
     }
 
-    public static Step createPendingStep(final String stepAsString, String previousNonAndStep) {
-        return new PendingStep(stepAsString, previousNonAndStep);
+    public static Step createPendingStep(final String stepAsString, String previousNonAndStep, Scenario scenario) {
+        return new PendingStep(stepAsString, previousNonAndStep, scenario);
     }
 
     public static Step createIgnorableStep(final String stepAsString) {
@@ -438,6 +443,105 @@ public class StepCreator {
             return ToStringBuilder.reflectionToString(this, ToStringStyle.SIMPLE_STYLE);
         }
 
+    }
+    
+    /**
+     * @author aserea
+     * Describes a step that is part of a scenario (has a stepAsString)
+     *
+     */
+    public static abstract class ScenarioStep extends AbstractStep {
+    	
+    	protected String stepAsString;
+    	protected Scenario scenario;
+    	
+    	public ScenarioStep(String stepAsString, Scenario scenario) {
+    		this.stepAsString = stepAsString;
+    		this.scenario = scenario;
+    	}
+    	
+    	/**
+    	 * A scenario step follows another given step 
+    	 * @param previousStep
+    	 * @return
+    	 */
+    	public boolean follows(ScenarioStep previousStep, List<String> storyPaths) {
+    		int previousStepIndex = previousStep.scenario.getSteps().indexOf(previousStep.stepAsString);
+    		int thisStepIndex = this.scenario.getSteps().indexOf(this.stepAsString);
+    		assert previousStepIndex != -1 && thisStepIndex != -1; 
+    		int previousStepScenarioIndex = previousStep.scenario.getStory().getScenarios().indexOf(previousStep.scenario);
+    		int thisStepScenarioIndex = this.scenario.getStory().getScenarios().indexOf(this.scenario);
+    		int previousStepStoryIndex = storyPaths.indexOf(previousStep.scenario.getStory().getPath());
+    		int thisStepStoryIndex = storyPaths.indexOf(this.scenario.getStory().getPath());
+    		//steps are in the same story
+    		if (thisStepStoryIndex == previousStepStoryIndex) {
+    			//case 1: steps are in the same scenario			
+    			if (thisStepScenarioIndex == previousStepScenarioIndex) {
+    				if (this.scenario.getExamplesTable() != null) {
+    					//case 1.1: scenario has examples
+    					//return true if either steps are consecutive in the same example or last-first in consecutive examples
+    					if (!(this instanceof ParameterisedStep) || !(previousStep instanceof ParameterisedStep)) {
+    						return true;
+    					}
+    					ParameterisedStep previousParamStep = (ParameterisedStep) previousStep;
+    					ParameterisedStep thisParamStep = (ParameterisedStep) this;
+    					List<Map<String, String>> examples = this.scenario.getExamplesTable().getRows();
+    					//compute step example indexes
+    					int previousStepExample = indexOf(examples, previousParamStep.namedParameters);
+    					int thisStepExample = indexOf(examples, thisParamStep.namedParameters);
+    					return (previousStepExample == thisStepExample && previousStepIndex == thisStepIndex - 1) ||
+    							(previousStepExample == thisStepExample - 1 && previousStepIndex == previousStep.scenario.getSteps().size() - 1 && thisStepIndex == 0);
+    				} else {
+    					//case 1.2: scenario has no examples: steps must be consecutive
+    					return previousStepIndex == thisStepIndex - 1;
+    				}
+    			} else {
+					//case 2: same story, different scenarios
+    				//return true if scenarios are consecutive, previous step is last in last scenario and this step is first in this scenario
+					if (previousStepScenarioIndex == thisStepScenarioIndex - 1 && 
+							(previousStepIndex == previousStep.scenario.getSteps().size() - 1) &&
+							thisStepIndex == 0) {
+						return true;
+					} else {
+						return false;
+					}
+    			}
+    		} else {
+				//case 3: different stories
+				//return true if stories are consecutive, previous step is last in last scenario and this step is first in first scenario
+				return (previousStepStoryIndex == thisStepStoryIndex - 1) &&
+						(previousStepScenarioIndex == previousStep.scenario.getStory().getScenarios().size() - 1) &&
+						(thisStepScenarioIndex == 0) &&
+						(previousStepIndex == previousStep.scenario.getSteps().size() - 1) &&
+						(thisStepIndex == 0);
+    		}
+    	}
+    	
+    	private static int indexOf(List<Map<String, String>> list, Map<String, String> element) {
+    		int i = 0;
+    		for(Map<String, String> map : list) {
+    			if (mapContentEquals(map, element)) {
+    				return i;
+    			}
+    			i++;
+    		}
+    		return -1;
+    	}
+    	
+    	private static <K, V> boolean mapContentEquals(Map<K, V> map1, Map<K,V> map2) {
+    		Set<Entry<K, V>> entrySet1 = map1.entrySet();
+    		Set<Entry<K, V>> entrySet2 = map2.entrySet();
+    		if (entrySet1.size() == entrySet2.size()) {
+    			for(Entry<K, V> entry : entrySet1) {
+    				if (!entrySet2.contains(entry)) {
+    					return false;
+    				}
+    			}
+    			return true;
+    		} else {
+    			return false;    			
+    		}
+    	}
     }
 
     private class BeforeOrAfterStep extends AbstractStep {
@@ -488,6 +592,14 @@ public class StepCreator {
                 return storyFailureIfItHappened;
             }
         }
+
+		public Method method() {
+			return this.method;
+		}
+
+		public String stepAsString() {
+			return null;
+		}
     }
 
     public class SuccessStep extends AbstractStep {
@@ -504,6 +616,14 @@ public class StepCreator {
         public StepResult perform(UUIDExceptionWrapper storyFailureIfItHappened) {
             return beforeOrAfterStep.perform(storyFailureIfItHappened);
         }
+
+		public Method method() {
+			return beforeOrAfterStep.method();
+		}
+
+		public String stepAsString() {
+			return beforeOrAfterStep.stepAsString();
+		}
     }
 
     public class FailureStep extends AbstractStep {
@@ -520,19 +640,26 @@ public class StepCreator {
         public StepResult perform(UUIDExceptionWrapper storyFailureIfItHappened) {
             return skipped();
         }
+
+		public Method method() {
+			return beforeOrAfterStep.method();
+		}
+
+		public String stepAsString() {
+			return beforeOrAfterStep.stepAsString();
+		}
     }
 
-    public class ParameterisedStep extends AbstractStep {
+    public class ParameterisedStep extends ScenarioStep {
         private Object[] convertedParameters;
         private String parametrisedStep;
-        private final String stepAsString;
         private final Method method;
         private final String stepWithoutStartingWord;
         private final Map<String, String> namedParameters;
 
         public ParameterisedStep(String stepAsString, Method method, String stepWithoutStartingWord,
-                Map<String, String> namedParameters) {
-            this.stepAsString = stepAsString;
+                Map<String, String> namedParameters, Scenario scenario) {
+            super(stepAsString, scenario);
             this.method = method;
             this.stepWithoutStartingWord = stepWithoutStartingWord;
             this.namedParameters = namedParameters;
@@ -598,15 +725,21 @@ public class StepCreator {
             }
         }
 
+		public Method method() {
+			return this.method;
+		}
+
+		public String stepAsString() {
+			return this.stepAsString;
+		}
     }
 
-    public static class PendingStep extends AbstractStep {
-        private final String stepAsString;
+    public static class PendingStep extends ScenarioStep {
         private final String previousNonAndStep;
         private Method method;
 
-        public PendingStep(String stepAsString, String previousNonAndStep) {
-            this.stepAsString = stepAsString;
+        public PendingStep(String stepAsString, String previousNonAndStep, Scenario scenario) {
+            super(stepAsString, scenario);
             this.previousNonAndStep = previousNonAndStep;
         }
 
@@ -634,6 +767,10 @@ public class StepCreator {
             return method != null;
         }
 
+		public Method method() {
+			return this.method;
+		}
+
     }
 
     public static class IgnorableStep extends AbstractStep {
@@ -650,6 +787,14 @@ public class StepCreator {
         public StepResult doNotPerform(UUIDExceptionWrapper storyFailureIfItHappened) {
             return ignorable(stepAsString);
         }
+
+		public Method method() {
+			return null;
+		}
+
+		public String stepAsString() {
+			return stepAsString;
+		}
     }
 
     private class MethodInvoker {

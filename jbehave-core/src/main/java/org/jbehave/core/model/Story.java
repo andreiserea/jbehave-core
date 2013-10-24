@@ -51,6 +51,9 @@ public class Story {
         this.meta = meta;
         this.givenStories = givenStories;
         this.scenarios = scenarios;
+        for(Scenario scenario : this.scenarios) {
+        	scenario.setStory(this);
+        }
     }
 
     public String getPath() {

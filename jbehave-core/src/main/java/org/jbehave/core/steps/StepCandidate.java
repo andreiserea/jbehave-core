@@ -11,6 +11,7 @@ import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
 import org.jbehave.core.configuration.Keywords;
 import org.jbehave.core.configuration.Keywords.StartingWordNotFound;
+import org.jbehave.core.model.Scenario;
 import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.parsers.StepPatternParser;
 
@@ -144,40 +145,40 @@ public class StepCandidate {
         }
     }
 
-    public Step createMatchedStep(String stepAsString, Map<String, String> namedParameters) {
-        return stepCreator.createParametrisedStep(method, stepAsString, stripStartingWord(stepAsString),
-                namedParameters);
-    }
+	public Step createMatchedStep(String stepAsString, Map<String, String> namedParameters, Scenario scenario) {
+		return stepCreator.createParametrisedStep(method, stepAsString, stripStartingWord(stepAsString),
+				namedParameters, scenario);
+	}
 
-    public void addComposedSteps(List<Step> steps, String stepAsString, Map<String, String> namedParameters,
-            List<StepCandidate> allCandidates) {
-        addComposedStepsRecursively(steps, stepAsString, namedParameters, allCandidates, composedSteps);
-    }
+	public void addComposedSteps(List<Step> steps, String stepAsString, Map<String, String> namedParameters,
+			List<StepCandidate> allCandidates, Scenario scenario) {
+		addComposedStepsRecursively(steps, stepAsString, namedParameters, allCandidates, composedSteps, scenario);
+	}
 
-    private void addComposedStepsRecursively(List<Step> steps, String stepAsString,
-            Map<String, String> namedParameters, List<StepCandidate> allCandidates, String[] composedSteps) {
-        Map<String, String> matchedParameters = stepCreator.matchedParameters(method, stepAsString,
-                stripStartingWord(stepAsString), namedParameters);
-        matchedParameters.putAll(namedParameters);
-        for (String composedStep : composedSteps) {
-            addComposedStep(steps, composedStep, matchedParameters, allCandidates);
-        }
-    }
+	private void addComposedStepsRecursively(List<Step> steps, String stepAsString,
+			Map<String, String> namedParameters, List<StepCandidate> allCandidates, String[] composedSteps, Scenario scenario) {
+		Map<String, String> matchedParameters = stepCreator.matchedParameters(method, stepAsString,
+				stripStartingWord(stepAsString), namedParameters);
+		matchedParameters.putAll(namedParameters);
+		for (String composedStep : composedSteps) {
+			addComposedStep(steps, composedStep, matchedParameters, allCandidates, scenario);
+		}
+	}
 
-    private void addComposedStep(List<Step> steps, String composedStep, Map<String, String> matchedParameters,
-            List<StepCandidate> allCandidates) {
-        StepCandidate candidate = findComposedCandidate(composedStep, allCandidates);
-        if (candidate != null) {
-            steps.add(candidate.createMatchedStep(composedStep, matchedParameters));
-            if (candidate.isComposite()) {
-                // candidate is itself composite: recursively add composed steps
-                addComposedStepsRecursively(steps, composedStep, matchedParameters, allCandidates,
-                        candidate.composedSteps());
-            }
-        } else {
-            steps.add(StepCreator.createPendingStep(composedStep, null));
-        }
-    }
+	private void addComposedStep(List<Step> steps, String composedStep, Map<String, String> matchedParameters,
+			List<StepCandidate> allCandidates, Scenario scenario) {
+		StepCandidate candidate = findComposedCandidate(composedStep, allCandidates);
+		if (candidate != null) {
+			steps.add(candidate.createMatchedStep(composedStep, matchedParameters, scenario));
+			if (candidate.isComposite()) {
+				// candidate is itself composite: recursively add composed steps
+				addComposedStepsRecursively(steps, composedStep, matchedParameters, allCandidates,
+						candidate.composedSteps(), scenario);
+			}
+		} else {
+			steps.add(StepCreator.createPendingStep(composedStep, null, scenario));
+		}
+	}
 
     private StepCandidate findComposedCandidate(String composedStep, List<StepCandidate> allCandidates) {
         for (StepCandidate candidate : allCandidates) {
