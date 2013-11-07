@@ -477,11 +477,11 @@ public class StepCreator {
     		if (thisStepStoryIndex == previousStepStoryIndex) {
     			//case 1: steps are in the same scenario			
     			if (thisStepScenarioIndex == previousStepScenarioIndex) {
-    				if (this.scenario.getExamplesTable() != null) {
+    				if (this.scenario.getExamplesTable().getRowCount() > 0) {
     					//case 1.1: scenario has examples
     					//return true if either steps are consecutive in the same example or last-first in consecutive examples
     					if (!(this instanceof ParameterisedStep) || !(previousStep instanceof ParameterisedStep)) {
-    						return true;
+    						return false;
     					}
     					ParameterisedStep previousParamStep = (ParameterisedStep) previousStep;
     					ParameterisedStep thisParamStep = (ParameterisedStep) this;
@@ -541,6 +541,10 @@ public class StepCreator {
     		} else {
     			return false;    			
     		}
+    	}
+    	
+    	public Scenario getScenario() {
+    		return this.scenario;
     	}
     }
 
