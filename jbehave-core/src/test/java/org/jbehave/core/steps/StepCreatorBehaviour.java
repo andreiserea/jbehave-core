@@ -90,7 +90,7 @@ public class StepCreatorBehaviour {
 
         // When
         Method method = SomeSteps.methodFor("aMethod");
-        ((ParameterisedStep) stepCreator.createParametrisedStep(method, "When I run", "I run", null)).describeTo(storyReporter);
+        ((ParameterisedStep) stepCreator.createParametrisedStep(method, "When I run", "I run", null, null)).describeTo(storyReporter);
 
         // Then
         verify(storyReporter).beforeStep("When I run");
@@ -106,7 +106,7 @@ public class StepCreatorBehaviour {
 
         // When
         Method method = SomeSteps.methodFor("aFailingMethod");
-        StepResult stepResult = stepCreator.createParametrisedStep(method, "When I fail", "I fail", null).perform(null);
+        StepResult stepResult = stepCreator.createParametrisedStep(method, "When I fail", "I fail", null, null).perform(null);
 
         // Then
         assertThat(stepResult, instanceOf(Failed.class));
@@ -122,7 +122,7 @@ public class StepCreatorBehaviour {
 
         // When
         Method method = null;
-        StepResult stepResult = stepCreator.createParametrisedStep(method, "When I fail", "I fail", null).perform(null);
+        StepResult stepResult = stepCreator.createParametrisedStep(method, "When I fail", "I fail", null, null).perform(null);
 
         // Then
         assertThat(stepResult, instanceOf(Failed.class));
@@ -148,7 +148,7 @@ public class StepCreatorBehaviour {
     public void shouldCreatePendingAndIgnorableAsStepResults() throws IntrospectionException {
         // When
         Step ignorableStep = StepCreator.createIgnorableStep("!-- ignore me");
-        Step pendingStep = StepCreator.createPendingStep("When I'm pending", null);
+        Step pendingStep = StepCreator.createPendingStep("When I'm pending", null, null);
 
         // Then
         assertThat(ignorableStep.perform(null), instanceOf(Ignorable.class));
@@ -174,7 +174,7 @@ public class StepCreatorBehaviour {
         
         // When
         StepResult stepResult = stepCreator.createParametrisedStep(SomeSteps.methodFor("aMethodWithANamedParameter"),
-                "When I use parameters "+firstParameterValue+" and " + secondParameterValue, "When I use parameters "+firstParameterValue+" and " + secondParameterValue, parameters)
+                "When I use parameters "+firstParameterValue+" and " + secondParameterValue, "When I use parameters "+firstParameterValue+" and " + secondParameterValue, parameters, null)
                 .perform(null);
 
         // Then
@@ -206,7 +206,7 @@ public class StepCreatorBehaviour {
         when(stepMatcher.parameter(1)).thenReturn(parameters.get(firstParameterValue));
         when(stepMatcher.parameter(2)).thenReturn(parameters.get(secondParameterValue));
         StepResult stepResult = stepCreator.createParametrisedStep(SomeSteps.methodFor("aMethodWithANamedParameter"),
-                "When I use parameters <theme> and <variant>", "I use parameters <theme> and <variant>", parameters)
+                "When I use parameters <theme> and <variant>", "I use parameters <theme> and <variant>", parameters, null)
                 .perform(null);
 
         // Then
@@ -446,7 +446,7 @@ public class StepCreatorBehaviour {
 
         // When
         Step step = stepCreator.createParametrisedStep(SomeSteps.methodFor("aMethodWithoutNamedAnnotation"),
-                "When a parameter <param> is set", "a parameter <param> is set", params);
+                "When a parameter <param> is set", "a parameter <param> is set", params, null);
         step.perform(null);
 
         // Then
@@ -473,7 +473,7 @@ public class StepCreatorBehaviour {
 
         // When
         Step step = stepCreator.createParametrisedStep(SomeSteps.methodFor("aMethodWithANamedParameter"),
-                "When I use parameters <t> and <v>", "I use parameters <t> and <v>", params);
+                "When I use parameters <t> and <v>", "I use parameters <t> and <v>", params, null);
         step.perform(null);
 
         // Then
@@ -503,7 +503,7 @@ public class StepCreatorBehaviour {
 
         // When
         Step step = stepCreator.createParametrisedStep(SomeSteps.methodFor("aMethodWithANamedParameter"),
-                "When I use parameters <t> and <v>", "I use parameters <t> and <v>", params);
+                "When I use parameters <t> and <v>", "I use parameters <t> and <v>", params, null);
         step.perform(null);
 
         // Then

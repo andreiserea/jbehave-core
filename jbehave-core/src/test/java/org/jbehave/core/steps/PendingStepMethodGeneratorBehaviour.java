@@ -20,7 +20,7 @@ public class PendingStepMethodGeneratorBehaviour {
     @Test
     public void shouldGenerateMethodForNonAndPendingStep() throws IntrospectionException {
         // When
-        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("When I am pending", null);
+        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("When I am pending", null, null);
 
         // Then
         String method = 
@@ -36,7 +36,7 @@ public class PendingStepMethodGeneratorBehaviour {
     public void shouldGenerateMethodForAndPendingStepWithPreviousNonAndStep() throws IntrospectionException {
 
         // When
-        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("And I am pending", "Given I was pending");
+        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("And I am pending", "Given I was pending", null);
 
         // Then
         String method = 
@@ -52,7 +52,7 @@ public class PendingStepMethodGeneratorBehaviour {
     public void shouldNormaliseStepPatternToJavaCompatibleMethodNameAndString() throws IntrospectionException {
         // When
         String pattern = "I'm searching for \".*\", and for others chars such as :;!|, and I look for <this>: $ \\ / () {} [] ";
-        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null);
+        PendingStep pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null, null);
 
         // Then
         String method = 
@@ -69,7 +69,7 @@ public class PendingStepMethodGeneratorBehaviour {
        for(int i=32;i<128;i++) {
            pattern+=(char)i;
        }
-       pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null);
+       pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null, null);
 
        // Then
        method = 
@@ -85,7 +85,7 @@ public class PendingStepMethodGeneratorBehaviour {
        for(int i=160;i<256;i++) {
            pattern+=(char)i;
        }
-       pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null);
+       pendingStep = (PendingStep) StepCreator.createPendingStep("When "+pattern, null, null);
 
        // Then
        method = 

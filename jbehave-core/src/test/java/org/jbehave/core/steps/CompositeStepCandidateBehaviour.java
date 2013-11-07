@@ -34,7 +34,7 @@ public class CompositeStepCandidateBehaviour {
         assertThat(candidate.isComposite(), is(true));
         Map<String, String> noNamedParameters = new HashMap<String, String>();
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "Given Mr Jones has previously bought a ticket", noNamedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "Given Mr Jones has previously bought a ticket", noNamedParameters, candidates, null);
         assertThat(composedSteps.size(), equalTo(2));
         for (Step step : composedSteps) {
             step.perform(null);
@@ -77,7 +77,7 @@ public class CompositeStepCandidateBehaviour {
         namedParameters.put("customer", "Mr Jones");
         namedParameters.put("product", "ticket");
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "Given <customer> has previously bought a <product>", namedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "Given <customer> has previously bought a <product>", namedParameters, candidates, null);
         assertThat(composedSteps.size(), equalTo(2));
         for (Step step : composedSteps) {
             step.perform(null);
@@ -121,7 +121,7 @@ public class CompositeStepCandidateBehaviour {
         namedParameters.put("customer", "Mr Jones");
         namedParameters.put("product", "ticket");
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "Given <customer> has previously bought a <product>", namedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "Given <customer> has previously bought a <product>", namedParameters, candidates, null);
         assertThat(composedSteps.size(), equalTo(2));
         for (Step step : composedSteps) {
             step.perform(null);
@@ -169,7 +169,7 @@ public class CompositeStepCandidateBehaviour {
         assertThat(candidate.isComposite(), is(true));
         Map<String, String> noNamedParameters = new HashMap<String, String>();
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "Then all buttons are enabled", noNamedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "Then all buttons are enabled", noNamedParameters, candidates, null);
         assertThat(composedSteps.size(), equalTo(6));
         for (Step step : composedSteps) {
             step.perform(null);
@@ -238,7 +238,7 @@ public class CompositeStepCandidateBehaviour {
         assertThat(candidate.isComposite(), is(true));
         Map<String, String> noNamedParameters = new HashMap<String, String>();
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "When I login", noNamedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "When I login", noNamedParameters, candidates, null);
         assertThat(composedSteps.size(), equalTo(1));
         for (Step step : composedSteps) {
             step.perform(null);
@@ -270,7 +270,7 @@ public class CompositeStepCandidateBehaviour {
         assertThat(candidate.isComposite(), is(true));
         Map<String, String> noNamedParameters = new HashMap<String, String>();
         List<Step> composedSteps = new ArrayList<Step>();
-        candidate.addComposedSteps(composedSteps, "Given I am logged in as someUserName", noNamedParameters, candidates);
+        candidate.addComposedSteps(composedSteps, "Given I am logged in as someUserName", noNamedParameters, candidates, null);
         for (Step step : composedSteps) {
             step.perform(null);
         }

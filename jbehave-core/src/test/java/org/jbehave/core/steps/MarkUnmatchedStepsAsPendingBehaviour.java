@@ -57,7 +57,7 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         Step executableStep = mock(Step.class);
 
         when(candidate.matches("my step")).thenReturn(true);
-        when(candidate.createMatchedStep("my step", parameters)).thenReturn(executableStep);
+        when(candidate.createMatchedStep("my step", parameters, null)).thenReturn(executableStep);
         when(steps.listCandidates()).thenReturn(asList(candidate));
 
         // When
@@ -82,12 +82,12 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
 
         String myStep = "my step";
         when(candidate.matches(myStep)).thenReturn(true);
-        when(candidate.createMatchedStep(myStep, parameters)).thenReturn(step);
+        when(candidate.createMatchedStep(myStep, parameters, null)).thenReturn(step);
         when(andCandidate.isAndStep(myStep)).thenReturn(false);
         String myAndStep = "my And step";
         when(andCandidate.matches(myAndStep)).thenReturn(true);
         when(andCandidate.isAndStep(myAndStep)).thenReturn(true);
-        when(andCandidate.createMatchedStep(myAndStep, parameters)).thenReturn(andStep);
+        when(andCandidate.createMatchedStep(myAndStep, parameters, null)).thenReturn(andStep);
 
         when(steps.listCandidates()).thenReturn(asList(candidate, andCandidate));
 
@@ -115,7 +115,7 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         String compositeStepAsString = "my composite step";
         when(compositeCandidate.matches(compositeStepAsString)).thenReturn(true);
         when(compositeCandidate.isComposite()).thenReturn(true);
-        when(compositeCandidate.createMatchedStep(compositeStepAsString, parameters)).thenReturn(
+        when(compositeCandidate.createMatchedStep(compositeStepAsString, parameters, null)).thenReturn(
                 executableCompositeStep);
 
         // When
@@ -123,7 +123,7 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
                 asList(compositeStepAsString)), parameters);
 
         // Then
-        verify(compositeCandidate, times(1)).addComposedSteps(Mockito.eq(new ArrayList<Step>()), Mockito.eq(compositeStepAsString), Mockito.eq(parameters), Mockito.eq(allCandidates));
+        verify(compositeCandidate, times(1)).addComposedSteps(Mockito.eq(new ArrayList<Step>()), Mockito.eq(compositeStepAsString), Mockito.eq(parameters), Mockito.eq(allCandidates), null);
     }
 
     @Test
@@ -372,10 +372,10 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         when(candidate2.getPriority()).thenReturn(2);
         when(candidate3.getPriority()).thenReturn(3);
         when(candidate4.getPriority()).thenReturn(4);
-        when(candidate1.createMatchedStep(stepAsString, parameters)).thenReturn(step1);
-        when(candidate2.createMatchedStep(stepAsString, parameters)).thenReturn(step2);
-        when(candidate3.createMatchedStep(stepAsString, parameters)).thenReturn(step3);
-        when(candidate4.createMatchedStep(stepAsString, parameters)).thenReturn(step4);
+        when(candidate1.createMatchedStep(stepAsString, parameters, null)).thenReturn(step1);
+        when(candidate2.createMatchedStep(stepAsString, parameters, null)).thenReturn(step2);
+        when(candidate3.createMatchedStep(stepAsString, parameters, null)).thenReturn(step3);
+        when(candidate4.createMatchedStep(stepAsString, parameters, null)).thenReturn(step4);
 
         // When we collect the list of steps
         StepCollector stepCollector = new MarkUnmatchedStepsAsPending();
@@ -414,10 +414,10 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         when(candidate2.getPatternAsString()).thenReturn("When I do something ");
         when(candidate3.getPatternAsString()).thenReturn("Then I do something");
         when(candidate4.getPatternAsString()).thenReturn("And I do something");
-        when(candidate1.createMatchedStep(stepAsString, parameters)).thenReturn(step1);
-        when(candidate2.createMatchedStep(stepAsString, parameters)).thenReturn(step2);
-        when(candidate3.createMatchedStep(stepAsString, parameters)).thenReturn(step3);
-        when(candidate4.createMatchedStep(stepAsString, parameters)).thenReturn(step4);
+        when(candidate1.createMatchedStep(stepAsString, parameters, null)).thenReturn(step1);
+        when(candidate2.createMatchedStep(stepAsString, parameters, null)).thenReturn(step2);
+        when(candidate3.createMatchedStep(stepAsString, parameters, null)).thenReturn(step3);
+        when(candidate4.createMatchedStep(stepAsString, parameters, null)).thenReturn(step4);
 
         StepCollector stepCollector = new MarkUnmatchedStepsAsPending(new StepFinder(new ByLevenshteinDistance()));
         List<Step> steps = stepCollector.collectScenarioSteps(asList(steps1, steps2),
