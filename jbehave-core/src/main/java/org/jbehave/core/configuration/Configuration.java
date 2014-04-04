@@ -1,7 +1,9 @@
 package org.jbehave.core.configuration;
 
 import org.jbehave.core.Embeddable;
+import org.jbehave.core.embedder.AllowAllScenarioFilter;
 import org.jbehave.core.embedder.Embedder;
+import org.jbehave.core.embedder.ScenarioFilter;
 import org.jbehave.core.embedder.StoryControls;
 import org.jbehave.core.failures.FailingUponPendingStep;
 import org.jbehave.core.failures.FailureStrategy;
@@ -178,6 +180,8 @@ public abstract class Configuration {
      * The default step executor invokes the StoryRunner.State.run method.
      */
     private StepExecutor stepExecutor = new SimpleStepExecutor();
+    
+    private ScenarioFilter scenarioFilter = new AllowAllScenarioFilter();
 
 
     public Keywords keywords() {
@@ -273,6 +277,10 @@ public abstract class Configuration {
     
     public StepExecutor stepExecutor() {
     	return stepExecutor;
+    }
+    
+    public ScenarioFilter scenarioFilter() {
+    	return scenarioFilter;
     }
 
     public Configuration useKeywords(Keywords keywords) {
@@ -382,6 +390,11 @@ public abstract class Configuration {
     
     public Configuration useStepExecutor(StepExecutor stepExecutor) {
     	this.stepExecutor = stepExecutor;
+    	return this;
+    }
+    
+    public Configuration useScenarioFilter(ScenarioFilter scenarioFilter) {
+    	this.scenarioFilter = scenarioFilter;
     	return this;
     }
 

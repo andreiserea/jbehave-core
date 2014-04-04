@@ -38,6 +38,7 @@ import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.Step;
 import org.jbehave.core.steps.StepCollector;
 import org.jbehave.core.steps.StepCollector.Stage;
+import org.jbehave.core.steps.StepIndex;
 import org.jbehave.core.steps.StepResult;
 import org.jbehave.core.steps.Steps;
 import org.junit.Test;
@@ -292,6 +293,11 @@ public class StoryRunnerBehaviour {
 			}
 
 			public String stepAsString() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			public StepIndex index(List<String> storyPaths) {
 				// TODO Auto-generated method stub
 				return null;
 			}

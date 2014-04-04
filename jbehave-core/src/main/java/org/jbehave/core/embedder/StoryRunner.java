@@ -288,6 +288,11 @@ public class StoryRunner {
                     reporter.get().scenarioNotAllowed(scenario, context.metaFilterAsString());
                     scenarioAllowed = false;
                 }
+                ScenarioFilter scenarioFilter = context.configuration().scenarioFilter();
+				if (!scenarioFilter.allowed(scenario)) {
+                	reporter.get().scenarioNotAllowed(scenario, "No changes have been made");
+                    scenarioAllowed = false;
+                }
 
                 if (scenarioAllowed) {
                     if (context.configuration().storyControls().resetStateBeforeScenario()) {

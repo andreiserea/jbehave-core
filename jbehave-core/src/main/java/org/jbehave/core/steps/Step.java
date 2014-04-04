@@ -1,6 +1,7 @@
 package org.jbehave.core.steps;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.jbehave.core.failures.UUIDExceptionWrapper;
 
@@ -17,4 +18,5 @@ public interface Step {
     
     String stepAsString();
     
+    StepIndex index(List<String> storyPaths);
 }

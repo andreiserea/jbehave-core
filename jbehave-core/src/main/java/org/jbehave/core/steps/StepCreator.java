@@ -438,11 +438,16 @@ public class StepCreator {
 
     public static abstract class AbstractStep implements Step {
 
+    	protected StepIndex index = null;
+    	
         @Override
         public String toString() {
             return ToStringBuilder.reflectionToString(this, ToStringStyle.SIMPLE_STYLE);
         }
-
+        
+        public StepIndex index(List<String> storyPaths) {
+        	return this.index;
+        }
     }
     
     /**
@@ -455,67 +460,33 @@ public class StepCreator {
     	protected String stepAsString;
     	protected Scenario scenario;
     	
+    	
     	public ScenarioStep(String stepAsString, Scenario scenario) {
     		this.stepAsString = stepAsString;
     		this.scenario = scenario;
     	}
     	
-    	/**
-    	 * A scenario step follows another given step 
-    	 * @param previousStep
-    	 * @return
-    	 */
-    	public boolean follows(ScenarioStep previousStep, List<String> storyPaths) {
-    		int previousStepIndex = previousStep.scenario.getSteps().indexOf(previousStep.stepAsString);
-    		int thisStepIndex = this.scenario.getSteps().indexOf(this.stepAsString);
-    		assert previousStepIndex != -1 && thisStepIndex != -1; 
-    		int previousStepScenarioIndex = previousStep.scenario.getStory().getScenarios().indexOf(previousStep.scenario);
-    		int thisStepScenarioIndex = this.scenario.getStory().getScenarios().indexOf(this.scenario);
-    		int previousStepStoryIndex = storyPaths.indexOf(previousStep.scenario.getStory().getPath());
-    		int thisStepStoryIndex = storyPaths.indexOf(this.scenario.getStory().getPath());
-    		//steps are in the same story
-    		if (thisStepStoryIndex == previousStepStoryIndex) {
-    			//case 1: steps are in the same scenario			
-    			if (thisStepScenarioIndex == previousStepScenarioIndex) {
-    				if (this.scenario.getExamplesTable().getRowCount() > 0) {
-    					//case 1.1: scenario has examples
-    					//return true if either steps are consecutive in the same example or last-first in consecutive examples
-    					if (!(this instanceof ParameterisedStep) || !(previousStep instanceof ParameterisedStep)) {
-    						return false;
-    					}
-    					ParameterisedStep previousParamStep = (ParameterisedStep) previousStep;
-    					ParameterisedStep thisParamStep = (ParameterisedStep) this;
-    					List<Map<String, String>> examples = this.scenario.getExamplesTable().getRows();
-    					//compute step example indexes
-    					int previousStepExample = indexOf(examples, previousParamStep.namedParameters);
-    					int thisStepExample = indexOf(examples, thisParamStep.namedParameters);
-    					return (previousStepExample == thisStepExample && previousStepIndex == thisStepIndex - 1) ||
-    							(previousStepExample == thisStepExample - 1 && previousStepIndex == previousStep.scenario.getSteps().size() - 1 && thisStepIndex == 0);
-    				} else {
-    					//case 1.2: scenario has no examples: steps must be consecutive
-    					return previousStepIndex == thisStepIndex - 1;
-    				}
-    			} else {
-					//case 2: same story, different scenarios
-    				//return true if scenarios are consecutive, previous step is last in last scenario and this step is first in this scenario
-					if (previousStepScenarioIndex == thisStepScenarioIndex - 1 && 
-							(previousStepIndex == previousStep.scenario.getSteps().size() - 1) &&
-							thisStepIndex == 0) {
-						return true;
-					} else {
-						return false;
-					}
-    			}
-    		} else {
-				//case 3: different stories
-				//return true if stories are consecutive, previous step is last in last scenario and this step is first in first scenario
-				return (previousStepStoryIndex == thisStepStoryIndex - 1) &&
-						(previousStepScenarioIndex == previousStep.scenario.getStory().getScenarios().size() - 1) &&
-						(thisStepScenarioIndex == 0) &&
-						(previousStepIndex == previousStep.scenario.getSteps().size() - 1) &&
-						(thisStepIndex == 0);
+    	private void computeStepIndex(List<String> storyPaths) {
+    		int exampleIndex = -1;
+    		if (this.scenario.getExamplesTable().getRowCount() > 0 && this instanceof ParameterisedStep) {
+    			exampleIndex = indexOf(this.scenario.getExamplesTable().getRows(), ((ParameterisedStep)this).namedParameters);
     		}
+    		this.index = new StepIndex(exampleIndex, this.scenario.getSteps().indexOf(this.stepAsString), 
+    				this.scenario.getStory().getScenarios().indexOf(this.scenario), 
+    				storyPaths.indexOf(this.scenario.getStory().getPath()));
     	}
+    	
+    	@Override
+        public StepIndex index(List<String> storyPaths) {
+        	if (this.index == null) {
+        		this.computeStepIndex(storyPaths);
+        	}
+        	return this.index;
+        }
+        
+        public boolean isLastInScenario() {
+        	return this.index.getStepIndex() == this.scenario.getSteps().size() - 1;
+        }
     	
     	private static int indexOf(List<Map<String, String>> list, Map<String, String> element) {
     		int i = 0;
@@ -548,7 +519,7 @@ public class StepCreator {
     	}
     }
 
-    private class BeforeOrAfterStep extends AbstractStep {
+    public class BeforeOrAfterStep extends AbstractStep {
         private final Method method;
         private final Meta meta;
 
