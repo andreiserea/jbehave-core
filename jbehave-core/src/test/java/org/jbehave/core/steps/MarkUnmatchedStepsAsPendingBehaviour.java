@@ -51,17 +51,17 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
     public void shouldCreateExecutableStepsWhenCandidatesAreMatched() {
         // Given
         StepCollector stepCollector = new MarkUnmatchedStepsAsPending();
-
+        Scenario scenario = new Scenario(asList("my step"));
         StepCandidate candidate = mock(StepCandidate.class);
         CandidateSteps steps = mock(Steps.class);
         Step executableStep = mock(Step.class);
 
         when(candidate.matches("my step")).thenReturn(true);
-        when(candidate.createMatchedStep("my step", parameters, null)).thenReturn(executableStep);
+        when(candidate.createMatchedStep("my step", parameters, scenario)).thenReturn(executableStep);
         when(steps.listCandidates()).thenReturn(asList(candidate));
 
         // When
-        List<Step> executableSteps = stepCollector.collectScenarioSteps(asList(steps), new Scenario(asList("my step")),
+        List<Step> executableSteps = stepCollector.collectScenarioSteps(asList(steps), scenario,
                 parameters);
 
         // Then
@@ -113,17 +113,17 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         List<StepCandidate> allCandidates = asList(compositeCandidate, composedCandidate1, composedCandidate2);
         when(steps.listCandidates()).thenReturn(allCandidates);
         String compositeStepAsString = "my composite step";
+        Scenario scenario = new Scenario(asList(compositeStepAsString));
         when(compositeCandidate.matches(compositeStepAsString)).thenReturn(true);
         when(compositeCandidate.isComposite()).thenReturn(true);
-        when(compositeCandidate.createMatchedStep(compositeStepAsString, parameters, null)).thenReturn(
+        when(compositeCandidate.createMatchedStep(compositeStepAsString, parameters, scenario)).thenReturn(
                 executableCompositeStep);
 
         // When
-        stepCollector.collectScenarioSteps(asList(steps), new Scenario(
-                asList(compositeStepAsString)), parameters);
+		stepCollector.collectScenarioSteps(asList(steps), scenario, parameters);
 
         // Then
-        verify(compositeCandidate, times(1)).addComposedSteps(Mockito.eq(new ArrayList<Step>()), Mockito.eq(compositeStepAsString), Mockito.eq(parameters), Mockito.eq(allCandidates), null);
+        verify(compositeCandidate, times(1)).addComposedSteps(Mockito.eq(new ArrayList<Step>()), Mockito.eq(compositeStepAsString), Mockito.eq(parameters), Mockito.eq(allCandidates), Mockito.eq(scenario));
     }
 
     @Test
@@ -364,6 +364,7 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
 
         // all matching the same step string with different priorities
         String stepAsString = "Given a step";
+        Scenario scenario = new Scenario(asList(stepAsString));
         when(candidate1.matches(stepAsString)).thenReturn(true);
         when(candidate2.matches(stepAsString)).thenReturn(true);
         when(candidate3.matches(stepAsString)).thenReturn(true);
@@ -372,15 +373,15 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         when(candidate2.getPriority()).thenReturn(2);
         when(candidate3.getPriority()).thenReturn(3);
         when(candidate4.getPriority()).thenReturn(4);
-        when(candidate1.createMatchedStep(stepAsString, parameters, null)).thenReturn(step1);
-        when(candidate2.createMatchedStep(stepAsString, parameters, null)).thenReturn(step2);
-        when(candidate3.createMatchedStep(stepAsString, parameters, null)).thenReturn(step3);
-        when(candidate4.createMatchedStep(stepAsString, parameters, null)).thenReturn(step4);
+        when(candidate1.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step1);
+        when(candidate2.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step2);
+        when(candidate3.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step3);
+        when(candidate4.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step4);
 
         // When we collect the list of steps
         StepCollector stepCollector = new MarkUnmatchedStepsAsPending();
-        List<Step> steps = stepCollector.collectScenarioSteps(asList(steps1, steps2),
-                new Scenario(asList(stepAsString)), parameters);
+		List<Step> steps = stepCollector.collectScenarioSteps(asList(steps1, steps2),
+                scenario, parameters);
 
         // Then the step with highest priority is returned
         assertThat(step4, equalTo(steps.get(0)));
@@ -406,6 +407,7 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
 
         // all matching the same step string with different priorities
         String stepAsString = "Given a step";
+        Scenario scenario = new Scenario(asList(stepAsString));
         when(candidate1.matches(stepAsString)).thenReturn(true);
         when(candidate2.matches(stepAsString)).thenReturn(true);
         when(candidate3.matches(stepAsString)).thenReturn(true);
@@ -414,14 +416,14 @@ public class MarkUnmatchedStepsAsPendingBehaviour {
         when(candidate2.getPatternAsString()).thenReturn("When I do something ");
         when(candidate3.getPatternAsString()).thenReturn("Then I do something");
         when(candidate4.getPatternAsString()).thenReturn("And I do something");
-        when(candidate1.createMatchedStep(stepAsString, parameters, null)).thenReturn(step1);
-        when(candidate2.createMatchedStep(stepAsString, parameters, null)).thenReturn(step2);
-        when(candidate3.createMatchedStep(stepAsString, parameters, null)).thenReturn(step3);
-        when(candidate4.createMatchedStep(stepAsString, parameters, null)).thenReturn(step4);
+        when(candidate1.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step1);
+        when(candidate2.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step2);
+        when(candidate3.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step3);
+        when(candidate4.createMatchedStep(stepAsString, parameters, scenario)).thenReturn(step4);
 
         StepCollector stepCollector = new MarkUnmatchedStepsAsPending(new StepFinder(new ByLevenshteinDistance()));
-        List<Step> steps = stepCollector.collectScenarioSteps(asList(steps1, steps2),
-                new Scenario(asList(stepAsString)), parameters);
+		List<Step> steps = stepCollector.collectScenarioSteps(asList(steps1, steps2),
+                scenario, parameters);
 
         // Then the step with highest priority is returned
         assertThat(step4, equalTo(steps.get(0)));
